@@ -25,7 +25,6 @@ def point2point_mean_and_std_deviation(pcd1, pcd2):
     :return: mean_distance: 平均值距离
     :return: std_distance: 标准差距离
     """
-
     # 计算点到点距离
     distances = pcd1.compute_point_cloud_distance(pcd2)
     mean_distance = np.mean(distances)
@@ -81,3 +80,19 @@ def voxel_similarity(pcd1, pcd2):
     voxel_similarity = len(intersection.voxels) / len(union.voxels)
     print(f"Voxel similarity: {voxel_similarity}")
     return voxel_similarity
+
+
+def compute_z_axis(pcd_a, pcd_b):
+    distances, indices = pcd_a.compute_point_cloud_distance(pcd_b)
+    closest_points_a = pcd_a.points[np.asarray(indices)]
+    closest_points_b = pcd_b.points
+    print(closest_points_b[1])
+
+
+path1 = "dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd"
+path2 = "dataset_reg/scnu_079_20m_4ms_box_face_only.pcd"
+pcd1 = o3d.io.read_point_cloud(path1)
+pcd2 = o3d.io.read_point_cloud(path2)
+compute_z_axis(pcd1, pcd2)
+
+
