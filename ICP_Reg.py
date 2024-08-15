@@ -27,7 +27,7 @@ def fpfh_feature_extract(pcd, size):
 
 
 class Registration:
-    def __init__(self, source, target, threshold):
+    def __init__(self, source, target, threshold=0.1):
         self.source = source
         self.target = target
         self.source_fpfh = None
@@ -53,9 +53,6 @@ class Registration:
     def preprocess_dataset(self):
         """
         Initial the Cloud Point Data and extract the feature of the Cloud Point
-        :param size: int ,the resolution of process, it will be used in Estimate Normals and FPFH
-        In details, the resolution of Estimate Normals, FPFH is 2*size, 5*size respectively
-        :return:
         """
         print(":: Load two point clouds and disturb initial pose.")
         self.draw_registration_result(np.identity(4))
@@ -106,7 +103,6 @@ class Registration:
         :param iter_method: string, use "rmse", "fitness" or "max_iteration" to modify the iteration method
         :param iter_threshold: the threshold of iteration
         :param dis_threshold: float, distance threshold, radius of K-NN in ICP
-        :return:
         """
         trans_init = self.reg_result.transformation
         '''
@@ -141,28 +137,25 @@ class Registration:
         print(self.reg_result.transformation)
         self.draw_registration_result(reg_p2p.transformation)
 
-    def evaluation_matrix(self, reg_p2p):
+    def evaluation_matrix(self):
         """
-        Compare the difference of pcd1 and pcd2, includes Hausdorff Distance , Mean Distance, Standard Deviation
+        Compare the difference of registration source and target, includes Hausdorff Distance , Mean Distance, Standard Deviation
         , Fitness, RMSE and Correspondence Set
-        :param reg_p2p: result of reg, return from execute_icp_registration
-        :return:
         """
-
         hausdorff_distance = sim.hausdorff_distance(self.reg_source, self.target)
         mean, std = sim.point2point_mean_and_std_deviation(self.reg_source, self.target)
+        evaluate = o3d.pipelines.registration.evaluate_registration(
+            self.reg_source, self.target, 0.05, np.identity(4))
         print("The Hausdorff Distance is ", hausdorff_distance)
         print("The mean is ", mean, ", the std is ", std)
-        print("The inliner RMSE is ", reg_p2p.inlier_rmse, ", the fitness is ", reg_p2p.fitness)
+        print("The inliner RMSE is ", evaluate.inlier_rmse, ", the fitness is ", evaluate.fitness)
         self.draw_registration_result(np.identity(4))
 
     def cloudpoint_registration(self, icp_method="max_iteration", iter_threshold=10000, dis_threshold=0.05):
         """
-
-        :param icp_method:
-        :param iter_threshold:
-        :param dis_threshold:
-        :return:
+        :param icp_method: string, use "rmse", "fitness" or "max_iteration" to modify the iteration method
+        :param iter_threshold: the threshold of iteration
+        :param dis_threshold: distance threshold, radius of K-NN in ICP
         """
         o3d.visualization.draw_geometries(self.source, self.target)
         self.preprocess_dataset()
@@ -174,6 +167,7 @@ class Registration:
 
         self.execute_icp_registration(icp_method, iter_threshold, dis_threshold)
         self.reg_source = self.source.transform(self.reg_result.transformation)
-        self.evaluation_matrix(self.reg_result)
+        self.evaluation_matrix()
+
 
 
