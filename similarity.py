@@ -89,10 +89,5 @@ def compute_z_axis(pcd_a, pcd_b):
     print(closest_points_b[1])
 
 
-path1 = "dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd"
-path2 = "dataset_reg/scnu_079_20m_4ms_box_face_only.pcd"
-pcd1 = o3d.io.read_point_cloud(path1)
-pcd2 = o3d.io.read_point_cloud(path2)
-compute_z_axis(pcd1, pcd2)
 
 

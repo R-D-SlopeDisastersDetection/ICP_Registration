@@ -38,7 +38,7 @@ class Registration:
 
     def draw_registration_result(self, transformation):
         """
-        Use to show two cloud point, this function will draw the blue and yellow to cloud point
+        Used to show two cloud points, this function will draw the blue and yellow to cloud point
         , and move and rotate the source cloud point according to the transformation matrix
         :param transformation:`4 x 4` float64 numpy array: The estimated transformation matrix
         :return:
@@ -53,8 +53,6 @@ class Registration:
     def preprocess_dataset(self):
         """
         Initial the Cloud Point Data and extract the feature of the Cloud Point
-        :param size: int ,the resolution of process, it will be used in Estimate Normals and FPFH
-        In details, the resolution of Estimate Normals, FPFH is 2*size, 5*size respectively
         :return:
         """
         print(":: Load two point clouds and disturb initial pose.")
@@ -81,24 +79,6 @@ class Registration:
                 o3d.pipelines.registration.CorrespondenceCheckerBasedOnDistance(
                     distance_threshold)
             ], o3d.pipelines.registration.RANSACConvergenceCriteria(100000, 0.999))
-
-    # def apply_icp_registration(self):
-    #     print("Apply point-to-point ICP")
-    #     reg_p2p = o3d.pipelines.registration.registration_icp(
-    #         self.source, self.target, self.threshold, self.reg_result.transformation,
-    #         o3d.pipelines.registration.TransformationEstimationPointToPoint())
-    #     print(reg_p2p)
-    #     print("Transformation is:")
-    #     print(reg_p2p.transformation)
-    #     # draw_registration_result(source, target, reg_p2p.transformation)
-    #     reg_p2p = o3d.pipelines.registration.registration_icp(
-    #         self.source, self.target, self.threshold, self.reg_result.transformation,
-    #         o3d.pipelines.registration.TransformationEstimationPointToPoint(),
-    #         o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=2000))
-    #     print(reg_p2p)
-    #     print("Transformation is:")
-    #     print(reg_p2p.transformation)
-    #     return reg_p2p
 
     def execute_icp_registration(self, iter_method, iter_threshold, dis_threshold=0.05):
         """
@@ -141,39 +121,49 @@ class Registration:
         print(self.reg_result.transformation)
         self.draw_registration_result(reg_p2p.transformation)
 
-    def evaluation_matrix(self, reg_p2p):
+    def evaluation_matrix(self, pcd1, pcd2):
         """
         Compare the difference of pcd1 and pcd2, includes Hausdorff Distance , Mean Distance, Standard Deviation
         , Fitness, RMSE and Correspondence Set
-        :param reg_p2p: result of reg, return from execute_icp_registration
         :return:
         """
 
-        hausdorff_distance = sim.hausdorff_distance(self.reg_source, self.target)
-        mean, std = sim.point2point_mean_and_std_deviation(self.reg_source, self.target)
+        hausdorff_distance = sim.hausdorff_distance(pcd1, pcd2)
+        mean, std = sim.point2point_mean_and_std_deviation(pcd1, pcd2)
+        result = o3d.pipelines.registration.evaluate_registration(pcd1, pcd2, 0.05, np.identity(4))
         print("The Hausdorff Distance is ", hausdorff_distance)
         print("The mean is ", mean, ", the std is ", std)
-        print("The inliner RMSE is ", reg_p2p.inlier_rmse, ", the fitness is ", reg_p2p.fitness)
+        print("The inliner RMSE is ", result.inlier_rmse, ", the fitness is ", result.fitness)
         self.draw_registration_result(np.identity(4))
 
     def cloudpoint_registration(self, icp_method="max_iteration", iter_threshold=10000, dis_threshold=0.05):
         """
-
         :param icp_method:
         :param iter_threshold:
         :param dis_threshold:
         :return:
         """
-        o3d.visualization.draw_geometries(self.source, self.target)
+        o3d.visualization.draw_geometries([self.source, self.target])
         self.preprocess_dataset()
         self.execute_global_registration()
         print(self.reg_result)
-        # draw_registration_result(source_down, target_down, result_ransac.transformation)
+
         mean, std = sim.point2point_mean_and_std_deviation(self.source, self.target)
         print("RANSAC Finish!\nThe mean is ", mean, ", the std is ", std)
+        self.draw_registration_result(np.identity(4))
 
         self.execute_icp_registration(icp_method, iter_threshold, dis_threshold)
-        self.reg_source = self.source.transform(self.reg_result.transformation)
-        self.evaluation_matrix(self.reg_result)
+        self.reg_source = copy.deepcopy(self.source)
+        self.reg_source.transform(self.reg_result.transformation)
+        self.evaluation_matrix(self.reg_source, self.reg_source)
+        self.draw_registration_result(np.identity(4))
 
-
+# if __name__ == "__main__":
+#     pcd1 = o3d.io.read_point_cloud("dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd")
+#     pcd2 = o3d.io.read_point_cloud("dataset_reg/scnu_079_20m_4ms_box_face_only.pcd")
+#     reg = Registration(pcd1, pcd2, 0.05)
+#     reg.cloudpoint_registration()
+#     result = reg.reg_source
+#     print("内部结果")
+#     o3d.visualization.draw_geometries([result, pcd2])
+#     o3d.visualization.draw_geometries([pcd1, pcd2])
