@@ -35,6 +35,7 @@ class Registration:
         self.reg_source = None
         self.reg_result = None
         self.threshold = threshold
+        self.raw_trans = None
 
     def draw_registration_result(self, transformation):
         """
@@ -79,6 +80,7 @@ class Registration:
                 o3d.pipelines.registration.CorrespondenceCheckerBasedOnDistance(
                     distance_threshold)
             ], o3d.pipelines.registration.RANSACConvergenceCriteria(100000, 0.999))
+        self.raw_trans = copy.deepcopy(self.reg_result.transformation)
 
     def execute_icp_registration(self, iter_method, iter_threshold, dis_threshold=0.05):
         """
@@ -121,20 +123,19 @@ class Registration:
         print(self.reg_result.transformation)
         self.draw_registration_result(reg_p2p.transformation)
 
-    def evaluation_matrix(self, pcd1, pcd2):
+    def evaluation_matrix(self, reg_p2p):
         """
         Compare the difference of pcd1 and pcd2, includes Hausdorff Distance , Mean Distance, Standard Deviation
         , Fitness, RMSE and Correspondence Set
         :return:
         """
 
-        hausdorff_distance = sim.hausdorff_distance(pcd1, pcd2)
-        mean, std = sim.point2point_mean_and_std_deviation(pcd1, pcd2)
-        result = o3d.pipelines.registration.evaluate_registration(pcd1, pcd2, 0.05, np.identity(4))
+        hausdorff_distance = sim.hausdorff_distance(self.reg_source, self.target)
+        mean, std = sim.point2point_mean_and_std_deviation(self.reg_source, self.target)
         print("The Hausdorff Distance is ", hausdorff_distance)
         print("The mean is ", mean, ", the std is ", std)
-        print("The inliner RMSE is ", result.inlier_rmse, ", the fitness is ", result.fitness)
-        self.draw_registration_result(np.identity(4))
+        print("The inliner RMSE is ", reg_p2p.inlier_rmse, ", the fitness is ", reg_p2p.fitness)
+        self.draw_registration_result(reg_p2p.transformation)
 
     def cloudpoint_registration(self, icp_method="max_iteration", iter_threshold=10000, dis_threshold=0.05):
         """
@@ -154,16 +155,17 @@ class Registration:
 
         self.execute_icp_registration(icp_method, iter_threshold, dis_threshold)
         self.reg_source = copy.deepcopy(self.source)
+        self.reg_source = copy.deepcopy(self.source)
         self.reg_source.transform(self.reg_result.transformation)
-        self.evaluation_matrix(self.reg_source, self.reg_source)
-        self.draw_registration_result(np.identity(4))
+        self.evaluation_matrix(self.reg_result)
 
-# if __name__ == "__main__":
-#     pcd1 = o3d.io.read_point_cloud("dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd")
-#     pcd2 = o3d.io.read_point_cloud("dataset_reg/scnu_079_20m_4ms_box_face_only.pcd")
-#     reg = Registration(pcd1, pcd2, 0.05)
-#     reg.cloudpoint_registration()
-#     result = reg.reg_source
-#     print("内部结果")
-#     o3d.visualization.draw_geometries([result, pcd2])
-#     o3d.visualization.draw_geometries([pcd1, pcd2])
+
+if __name__ == "__main__":
+    pcd1 = o3d.io.read_point_cloud("dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd")
+    pcd2 = o3d.io.read_point_cloud("dataset_reg/scnu_079_20m_4ms_box_face_only.pcd")
+    reg = Registration(pcd1, pcd2, 0.05)
+    reg.cloudpoint_registration()
+    result = reg.reg_source
+    print("内部结果")
+    o3d.visualization.draw_geometries([result, pcd2])
+    o3d.visualization.draw_geometries([pcd1.transform(reg.raw_trans), pcd2])
