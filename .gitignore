@@ -2,3 +2,6 @@
 dataset_reg/
 mesh/
 terra_pcd/
+result/
+PointCloudGridCutting/output/
+grid_analyse_result/
