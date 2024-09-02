@@ -2,3 +2,5 @@
 dataset_reg/
 mesh/
 terra_pcd/
+grid_analyse_result/
+result/
