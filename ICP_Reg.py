@@ -9,7 +9,7 @@ def fpfh_feature_extract(pcd, size):
     Use Fast Point Feature Histogram(FPFH) Feature Extraction to get the feature of Cloud Point
     :param pcd: open3d.geometry.PointCloud, origin CloudPoint Object
     :param size: int, the resolution of process, the resolution of Estimate Normals, FPFH is 2*size, 5*size
-    :return: pcd_fpfh: open3d.geometry.PointCloud, The FPFH feature extract result of original pcd
+    :return: pcd_fpfh: open3d.geometry.PointCloud, The FPFH feature extract output of original pcd
     """
     # 法线计算
     radius_normal = size * 2
@@ -57,7 +57,6 @@ class Registration:
         :return:
         """
         print(":: Load two point clouds and disturb initial pose.")
-        self.draw_registration_result(np.identity(4))
 
         # Feature Extraction
         self.source_fpfh = fpfh_feature_extract(self.source, self.threshold)
@@ -67,7 +66,7 @@ class Registration:
         """
         Global Registration with RANSAC
         """
-        distance_threshold = self.threshold * 1.5
+        distance_threshold = self.threshold * 5
         print(":: RANSAC registration on downsampled point clouds.")
         print("   we use a liberal distance threshold %.3f." % distance_threshold)
         self.reg_result = o3d.pipelines.registration.registration_ransac_based_on_feature_matching(
@@ -79,7 +78,7 @@ class Registration:
                     0.9),
                 o3d.pipelines.registration.CorrespondenceCheckerBasedOnDistance(
                     distance_threshold)
-            ], o3d.pipelines.registration.RANSACConvergenceCriteria(100000, 0.999))
+            ], o3d.pipelines.registration.RANSACConvergenceCriteria(10000, 0.99))
         self.raw_trans = copy.deepcopy(self.reg_result.transformation)
 
     def execute_icp_registration(self, iter_method, iter_threshold, dis_threshold=0.05):
@@ -121,7 +120,6 @@ class Registration:
         print(self.reg_result)
         print("Transformation is:")
         print(self.reg_result.transformation)
-        self.draw_registration_result(reg_p2p.transformation)
 
     def evaluation_matrix(self, reg_p2p):
         """
@@ -129,7 +127,6 @@ class Registration:
         , Fitness, RMSE and Correspondence Set
         :return:
         """
-
         hausdorff_distance = sim.hausdorff_distance(self.reg_source, self.target)
         mean, std = sim.point2point_mean_and_std_deviation(self.reg_source, self.target)
         print("The Hausdorff Distance is ", hausdorff_distance)
@@ -155,17 +152,16 @@ class Registration:
 
         self.execute_icp_registration(icp_method, iter_threshold, dis_threshold)
         self.reg_source = copy.deepcopy(self.source)
-        self.reg_source = copy.deepcopy(self.source)
         self.reg_source.transform(self.reg_result.transformation)
         self.evaluation_matrix(self.reg_result)
 
 
-if __name__ == "__main__":
-    pcd1 = o3d.io.read_point_cloud("dataset_reg/scnu_066_20m_2ms_box_faceonly.pcd")
-    pcd2 = o3d.io.read_point_cloud("dataset_reg/scnu_079_20m_4ms_box_face_only.pcd")
-    reg = Registration(pcd1, pcd2, 0.05)
-    reg.cloudpoint_registration()
-    result = reg.reg_source
-    print("内部结果")
-    o3d.visualization.draw_geometries([result, pcd2])
-    o3d.visualization.draw_geometries([pcd1.transform(reg.raw_trans), pcd2])
+# if __name__ == "__main__":
+#     pcd1 = o3d.io.read_point_cloud("dataset_reg/simtest/format/5331.pcd")
+#     pcd2 = o3d.io.read_point_cloud("dataset_reg/simtest/format/5332.pcd")
+#     reg = Registration(pcd1, pcd2, 0.05)
+#     reg.cloudpoint_registration()
+#     output = reg.reg_source
+#     print("内部结果")
+#     o3d.visualization.draw_geometries([output, pcd2])
+#     o3d.visualization.draw_geometries([pcd1.transform(reg.raw_trans), pcd2])
