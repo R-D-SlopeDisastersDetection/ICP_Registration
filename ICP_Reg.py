@@ -27,7 +27,7 @@ def fpfh_feature_extract(pcd, size):
 
 
 class Registration:
-    def __init__(self, source, target, threshold):
+    def __init__(self, source, target, threshold, console_output=False):
         self.source = source
         self.target = target
         self.source_fpfh = None
@@ -36,6 +36,7 @@ class Registration:
         self.reg_result = None
         self.threshold = threshold
         self.raw_trans = None
+        self.console_output = console_output
 
     def draw_registration_result(self, transformation):
         """

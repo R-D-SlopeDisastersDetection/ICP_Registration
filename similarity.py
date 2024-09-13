@@ -17,11 +17,12 @@ def hausdorff_distance(pcd1, pcd2):
     return hausdorff
 
 
-def point2point_mean_and_std_deviation(pcd1, pcd2):
+def point2point_mean_and_std_deviation(pcd1, pcd2, console_output=False):
     """
     返回两个点云的平均值差和方差
-    :param path1: 点云1路径
-    :param path2: 点云2路径
+    :param pcd1:
+    :param pcd2:
+    :param console_output:
     :return: mean_distance: 平均值距离
     :return: std_distance: 标准差距离
     """
@@ -29,16 +30,17 @@ def point2point_mean_and_std_deviation(pcd1, pcd2):
     distances = pcd1.compute_point_cloud_distance(pcd2)
     mean_distance = np.mean(distances)
     std_distance = np.std(distances)
-    print(f"Mean distance: {mean_distance}")
-    print(f"Standard deviation of distances: {std_distance}")
+    if console_output:
+        print(f"Mean distance: {mean_distance}")
+        print(f"Standard deviation of distances: {std_distance}")
     return mean_distance, std_distance
 
 
 def compute_repeated_part(pcd1, pcd2):
     """
     使用 ICP（Iterative Closest Point）算法对齐两个点云，然后计算重叠的点数或比例。
-    :param path1: 点云1路径
-    :param path2:  点云2路径
+    :param pcd2:
+    :param pcd1:
     :return: overlap_ratio: 重叠率
     """
 
