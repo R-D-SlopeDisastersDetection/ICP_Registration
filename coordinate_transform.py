@@ -1,5 +1,6 @@
 from pyproj import Proj, transform
 
+
 # # 定义WGS84坐标系（大地坐标）
 # wgs84 = Proj(init='epsg:4326')
 # # 定义UTM投影坐标系（这里假设为UTM Zone 33N）
@@ -15,9 +16,21 @@ from pyproj import Proj, transform
 
 # p = Proj(proj="CSC2000", ellipsis="WGS84")
 # x=646506.103, y=2580182.152
-p = Proj(proj='tmerc', lat_0=0, lon_0=111, k=1, x_0=500000, y_0=0, ellps='WGS84', preserve_units=False)
-x = 740409.591111
-y = 2561892.956758
-lon, lan = p(x, y, inverse=True)
-print(lon, "  ", lan)
 
+def coordinate_transform(x, y, proj='tmerc', lat=0, lon=111, ellps='WGS84'):
+    """
+
+    :param x: 大地坐标的经度
+    :param y:
+    :param proj:
+    :param lat:
+    :param lon:
+    :param ellps:
+    :return:
+    """
+    proj = Proj(proj=proj, lat_0=lat, lon_0=lon, k=1, x_0=500000, y_0=0, ellps=ellps, preserve_units=False)
+    return proj(x, y, inverse=True)
+
+
+class Util:
+    pass

@@ -1,5 +1,6 @@
 import open3d as o3d
 import numpy as np
+import math
 
 
 def hausdorff_distance(pcd1, pcd2):
@@ -17,19 +18,21 @@ def hausdorff_distance(pcd1, pcd2):
     return hausdorff
 
 
-def point2point_mean_and_std_deviation(pcd1, pcd2, console_output=False):
+def point2point_mean_and_std_deviation(pcd1, pcd2, console_output=False, output_zero=True):
     """
     返回两个点云的平均值差和方差
     :param pcd1:
     :param pcd2:
     :param console_output:
+    :param output_zero: 是否将nan替换为0值
     :return: mean_distance: 平均值距离
     :return: std_distance: 标准差距离
     """
     # 计算点到点距离
     distances = pcd1.compute_point_cloud_distance(pcd2)
-    mean_distance = np.mean(distances)
-    std_distance = np.std(distances)
+    mean_distance = 0 if math.isnan(np.mean(distances)) and output_zero else np.mean(distances)
+    std_distance = 0 if math.isnan(np.std(distances)) and output_zero else np.std(distances)
+
     if console_output:
         print(f"Mean distance: {mean_distance}")
         print(f"Standard deviation of distances: {std_distance}")

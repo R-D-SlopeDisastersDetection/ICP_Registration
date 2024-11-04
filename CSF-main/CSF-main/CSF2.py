@@ -1,5 +1,4 @@
 import string
-
 import laspy
 import numpy as np
 import CSF
