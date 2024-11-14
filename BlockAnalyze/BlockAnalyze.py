@@ -35,7 +35,7 @@ class BlockAnalyze:
         一个4*1的矩阵，用于存储所有块的最小评估值。其中第一个为最小均值，第二个为最小标准差，第三个为最小rmse，第四个为最小重叠率
         '''
         self.evaluate_min = np.full((1, 4), sys.float_info.max)
-        self.exception_block_arr = []
+        self.exception_grid = np.zeros((self.block_x, self.block_y))
 
         # 获取当前时间
         date = datetime.now().strftime("%Y-%m-%d")
@@ -207,7 +207,7 @@ class BlockAnalyze:
                 if z_scores[i, j] > threshold:
                     exception_blocks[i][j].paint_uniform_color([1, 0, 0])
                     # 向异常数组中添加异常块的行号和列号，以及他的变化深度
-                    self.exception_block_arr.append([i, j, self.analyse_result[i, j, 0]])
+                    self.exception_grid[i][j] = 1
                 else:
                     exception_blocks[i][j] = o3d.geometry.PointCloud()
                 # 向异常点云中添加指定异常块

@@ -92,11 +92,8 @@ class BlockAnalyzeByChange(BlockAnalyze):
         writer.writerows(self.baseline_result[:, :, 0].tolist())
         writer.writerows([[], [], ["Mean: Target"]])
         writer.writerows(self.target_result[:, :, 0].tolist())
-        if len(self.exception_block_arr) != 0:
-            writer.writerows([[], [], ["Exception Block Detail INFO"], ["Row", "Column", "Mean Change"]])
-            for i in range(len(self.exception_block_arr)):
-                writer.writerow([self.exception_block_arr[i][0], self.exception_block_arr[i][1],
-                                 self.exception_block_arr[i][2]])
+        writer.writerows([[], [], ["Exception Grid"]])
+        writer.writerows(self.exception_grid.tolist())
         file.close()
 
     def draw_color(self, target_block: np.ndarray, empty_array: np.ndarray, threshold: float = 0.1, standard: int = 0):
